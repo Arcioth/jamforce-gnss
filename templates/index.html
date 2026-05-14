@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JamForce Taoglas Monitor</title>
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <img src="/static/img/logo.png" alt="JamForce Logo" class="splash-logo">
+            <h1 class="splash-text">JAMFORCE</h1>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo-area">
+                <img src="/static/img/logo.png" alt="Logo" class="sidebar-logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul id="nav-list">
+                    <li class="nav-item active" data-target="tab-dashboard"><i class="fa-solid fa-table-cells-large"></i> <span data-i18n="nav_dashboard">Dashboard</span></li>
+                    <li class="nav-item" data-target="tab-map"><i class="fa-solid fa-location-dot"></i> <span data-i18n="nav_map">Map</span></li>
+                    <li class="nav-item" data-target="tab-gnss"><i class="fa-solid fa-satellite"></i> <span data-i18n="nav_gnss">GNSS Stream</span></li>
+                    <li class="nav-item" data-target="tab-telemetry"><i class="fa-solid fa-chart-line"></i> <span data-i18n="nav_telemetry">Telemetry</span></li>
+                    <li class="nav-item" data-target="tab-alerts"><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="nav_alerts">Alerts</span></li>
+                    <li class="nav-item" data-target="tab-settings"><i class="fa-solid fa-gear"></i> <span data-i18n="nav_settings">Settings</span></li>
+                </ul>
+            </nav>
+
+            <div class="panel device-info">
+                <div class="panel-header" data-i18n="device_info">DEVICE INFO</div>
+                <div class="info-grid">
+                    <div class="info-label" data-i18n="device_name">DEVICE NAME:</div><div class="info-value">GGSFTP-08</div>
+                    <div class="info-label" data-i18n="device_id">DEVICE ID:</div><div class="info-value">GGSFTP-00.7.08</div>
+                    <div class="info-label" data-i18n="device_rate">DEVICE RATE:</div><div class="info-value">GGSFTP-50.7.08</div>
+                    <div class="info-label" data-i18n="oakge_rate">OAKGE RATE:</div><div class="info-value">0.0 m</div>
+                    <div class="info-label" data-i18n="link_rate">LINK RATE:</div><div class="info-value">1030%</div>
+                    <div class="info-label" data-i18n="fix_type">FIX TYPE:</div><div class="info-value" id="info-fix" data-i18n="fix_none">NO FIX</div>
+                    <div class="info-label" data-i18n="manchratics">MANCHRATICS:</div><div class="info-value">3D GNSS</div>
+                    <div class="info-label" data-i18n="signal_accel">SIGNAL ACCEL:</div><div class="info-value">E20 m</div>
+                    <div class="info-label" data-i18n="signal_quality">SIGNAL QUALITY:</div><div class="info-value" id="info-quality" data-i18n="poor">POOR</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-wrapper">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1>JAMFORCE</h1>
+                    <div class="subtitle">GGSFTP.50.7.A.08 TAOGLAS MONITORING APP V1.0</div>
+                    <div class="status-pill"><span class="status-icon"><i class="fa-solid fa-circle-check"></i> OK</span> <span data-i18n="device_online">DEVICE GGSFTP-08: ONLINE</span></div>
+                </div>
+                <div class="header-right">
+                    <div class="time-loc"><i class="fa-solid fa-location-dot"></i> <span id="time-local">--</span></div>
+                    <div class="time-utc">UTC: <span id="time-utc">--</span></div>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="tab-dashboard">
+                <div class="content-grid">
+                    <!-- Center Column -->
+                    <div class="center-column">
+                        <!-- System Overview (Radar) -->
+                        <div class="panel system-overview">
+                            <div class="panel-header">
+                                <span data-i18n="system_overview">SYSTEM OVERVIEW</span>
+                                <span class="custom-mapping" data-i18n="custom_mapping">CUSTOM MAPPING</span>
+                                <span class="satellite-label" data-i18n="satellite">SATELLITE</span>
+                            </div>
+                            <div class="radar-container">
+                                <canvas id="radarCanvas" width="600" height="400"></canvas>
+                                <div class="radar-stats">
+                                    <div><span data-i18n="sats_in_view">SATELLITES IN VIEW:</span> <span class="stat-highlight" id="sats-val">0</span></div>
+                                    <div><span data-i18n="fix_type">FIX TYPE:</span> <span class="stat-highlight" id="radar-fix" data-i18n="fix_none">NO FIX</span></div>
+                                    <div><span data-i18n="accuracy">ACCURACY:</span> <span class="stat-highlight" id="radar-hdop">0.0 m</span></div>
+                                    <div><span data-i18n="signal_quality">SIGNAL QUALITY:</span> <span class="stat-highlight" id="radar-quality" data-i18n="poor">POOR</span></div>
+                                </div>
+                                <div class="radar-number" id="sats-large">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Multi-Band Signal -->
+                        <div class="panel multi-band">
+                            <div class="panel-header" data-i18n="constellation_signals">CONSTELLATION SIGNALS (AVG SNR)</div>
+                            <div class="signal-bars">
+                                <div class="signal-row">
+                                    <div class="signal-label" style="color:#3b82f6;">GPS</div>
+                                    <div class="signal-bar-track"><div class="signal-bar-fill" id="fill-gps" style="width: 0%; background-color:#3b82f6;"></div></div>
+                                    <div class="signal-val" id="val-gps" style="color:#3b82f6;">0</div>
+                                </div>
+                                <div class="signal-row">
+                                    <div class="signal-label" style="color:#ef4444;">GLONASS</div>
+                                    <div class="signal-bar-track"><div class="signal-bar-fill" id="fill-glo" style="width: 0%; background-color:#ef4444;"></div></div>
+                                    <div class="signal-val" id="val-glo" style="color:#ef4444;">0</div>
+                                </div>
+                                <div class="signal-row">
+                                    <div class="signal-label" style="color:#10b981;">GALILEO</div>
+                                    <div class="signal-bar-track"><div class="signal-bar-fill" id="fill-gal" style="width: 0%; background-color:#10b981;"></div></div>
+                                    <div class="signal-val" id="val-gal" style="color:#10b981;">0</div>
+                                </div>
+                                <div class="signal-row">
+                                    <div class="signal-label" style="color:#f59e0b;">BEIDOU</div>
+                                    <div class="signal-bar-track"><div class="signal-bar-fill" id="fill-bds" style="width: 0%; background-color:#f59e0b;"></div></div>
+                                    <div class="signal-val" id="val-bds" style="color:#f59e0b;">0</div>
+                                </div>
+                                <div class="signal-row">
+                                    <div class="signal-label" style="color:#d946ef;">QZSS</div>
+                                    <div class="signal-bar-track"><div class="signal-bar-fill" id="fill-qzs" style="width: 0%; background-color:#d946ef;"></div></div>
+                                    <div class="signal-val" id="val-qzs" style="color:#d946ef;">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="right-column">
+                        <!-- Active Alerts -->
+                        <div class="panel active-alerts">
+                            <div class="panel-header" data-i18n="system_events">SYSTEM EVENTS</div>
+                            <div class="alerts-list" id="dashboard-alerts">
+                                <!-- Dynamic -->
+                            </div>
+                        </div>
+
+                        <!-- DOP Metrics -->
+                        <div class="panel link-metrics">
+                            <div class="panel-header" data-i18n="dop">DILUTION OF PRECISION</div>
+                            <div class="metrics-grid">
+                                <div class="metric-label">HDOP:</div>
+                                <div class="metric-value highlight" id="metric-hdop">0.0</div>
+                                <div class="metric-label">VDOP:</div>
+                                <div class="metric-value" id="metric-vdop">0.0</div>
+                                <div class="metric-label">PDOP:</div>
+                                <div class="metric-value" id="metric-pdop">0.0</div>
+                                <div class="metric-label" data-i18n="latitude">Latitude:</div>
+                                <div class="metric-value" id="metric-lat">0.000000</div>
+                                <div class="metric-label" data-i18n="longitude">Longitude:</div>
+                                <div class="metric-value" id="metric-lon">0.000000</div>
+                                <div class="metric-label" data-i18n="altitude">Altitude:</div>
+                                <div class="metric-value" id="metric-alt">0.0 m</div>
+                            </div>
+                        </div>
+
+                        <!-- SNR History -->
+                        <div class="panel cellular-data">
+                            <div class="panel-header">
+                                <span data-i18n="snr_history">OVERALL SNR HISTORY</span>
+                                <span class="mtb-usage">dB-Hz</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="snrHistoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Map Tab -->
+            <div class="tab-content" id="tab-map">
+                <div class="panel" style="flex:1; display:flex; flex-direction:column;">
+                    <div class="panel-header" data-i18n="live_map">LIVE TRACKING MAP</div>
+                    <div id="map" style="flex:1; background: #000; z-index: 1;"></div>
+                </div>
+            </div>
+
+            <!-- GNSS Tab -->
+            <div class="tab-content" id="tab-gnss">
+                <div class="panel" style="flex:1; display:flex; flex-direction:column;">
+                    <div class="panel-header" data-i18n="raw_stream">RAW NMEA DATA STREAM</div>
+                    <div id="console" class="console-window"></div>
+                </div>
+            </div>
+
+            <!-- Telemetry Tab -->
+            <div class="tab-content" id="tab-telemetry">
+                <div class="panel" style="flex:1; display:flex; flex-direction:column;">
+                    <div class="panel-header" data-i18n="constellation_telemetry">CONSTELLATION TELEMETRY (SNR)</div>
+                    <div class="charts-grid">
+                        <div class="chart-box">
+                            <div class="chart-title" style="color:#3b82f6;">GPS</div>
+                            <div class="canvas-wrapper"><canvas id="chart-GPS"></canvas></div>
+                        </div>
+                        <div class="chart-box">
+                            <div class="chart-title" style="color:#ef4444;">GLONASS</div>
+                            <div class="canvas-wrapper"><canvas id="chart-GLONASS"></canvas></div>
+                        </div>
+                        <div class="chart-box">
+                            <div class="chart-title" style="color:#10b981;">Galileo</div>
+                            <div class="canvas-wrapper"><canvas id="chart-Galileo"></canvas></div>
+                        </div>
+                        <div class="chart-box">
+                            <div class="chart-title" style="color:#f59e0b;">BeiDou</div>
+                            <div class="canvas-wrapper"><canvas id="chart-BeiDou"></canvas></div>
+                        </div>
+                        <div class="chart-box">
+                            <div class="chart-title" style="color:#d946ef;">QZSS</div>
+                            <div class="canvas-wrapper"><canvas id="chart-QZSS"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Tab -->
+            <div class="tab-content" id="tab-alerts">
+                <div class="panel" style="flex:1; display:flex; flex-direction:column;">
+                    <div class="panel-header" data-i18n="alert_history">ALERT HISTORY</div>
+                    <div class="alerts-list" id="full-alerts-list" style="flex:1; overflow-y:auto;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="tab-settings">
+                <div class="panel" style="padding: 20px; gap: 20px;">
+                    <div class="panel-header" data-i18n="system_actions">SYSTEM ACTIONS</div>
+                    <div style="display:flex; gap:15px; padding: 20px;">
+                        <button id="btn-pause" class="jam-btn" data-i18n="pause_stream">Pause Data Stream</button>
+                        <button id="btn-clear" class="jam-btn" data-i18n="clear_logs">Clear Data Logs</button>
+                        <button id="btn-download" class="jam-btn" data-i18n="download_log">Download Raw Log</button>
+                    </div>
+                    
+                    <div class="panel-header" data-i18n="language">LANGUAGE</div>
+                    <div style="display:flex; gap:15px; padding: 20px;">
+                        <button id="btn-lang-en" class="jam-btn active">English</button>
+                        <button id="btn-lang-tr" class="jam-btn">Türkçe</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
