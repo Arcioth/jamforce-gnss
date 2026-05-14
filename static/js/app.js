@@ -529,9 +529,13 @@ window.onload = () => {
     }, 2500);
 
     setInterval(() => {
-        const timeStr = new Date().toISOString().replace('T', ' ').substring(0, 16) + ' UTC | ' + currentCity;
-        document.getElementById('time-local').textContent = timeStr;
-        document.getElementById('time-utc').textContent = timeStr;
+        const now = new Date();
+        const utcStr = now.toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
+        const pad = (n) => n.toString().padStart(2, '0');
+        const localStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} LOCAL | ${currentCity}`;
+        
+        document.getElementById('time-local').textContent = localStr;
+        document.getElementById('time-utc').textContent = utcStr;
     }, 1000);
 
     initTabs();
