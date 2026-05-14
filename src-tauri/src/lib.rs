@@ -22,6 +22,16 @@ pub fn run() {
           .spawn()
           .expect("Failed to start GNSS backend server");
 
+      // Wait for the backend to bind to port 8000 to prevent Webview "Connection refused" errors
+      let mut attempts = 0;
+      while attempts < 50 {
+          if std::net::TcpStream::connect("127.0.0.1:8000").is_ok() {
+              break;
+          }
+          std::thread::sleep(std::time::Duration::from_millis(100));
+          attempts += 1;
+      }
+
       if cfg!(debug_assertions) {
         app.handle().plugin(
           tauri_plugin_log::Builder::default()
