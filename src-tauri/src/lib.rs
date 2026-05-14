@@ -3,6 +3,9 @@ use std::env;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  // HYPRLAND / WAYLAND FIX: Disable the DMA-BUF renderer which causes Protocol Error 71 on wlroots compositors
+  env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+
   tauri::Builder::default()
     .setup(|app| {
       // Get the absolute path to the launch.sh script which starts the python server
