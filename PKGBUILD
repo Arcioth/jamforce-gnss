@@ -6,7 +6,7 @@ pkgdesc="JamForce GNSS Monitor for Taoglas - Tactical Multi-Constellation Dashbo
 arch=('x86_64')
 url="https://github.com/Arcioth/jamforce-gnss"
 license=('MIT')
-depends=('python' 'python-fastapi' 'python-uvicorn' 'python-pyserial' 'python-pynmea2' 'python-websockets' 'python-jinja2' 'webkit2gtk' 'gtk3')
+depends=('python' 'webkit2gtk-4.1' 'gtk3')
 makedepends=('cargo' 'npm' 'nodejs')
 source=("git+https://github.com/Arcioth/jamforce-gnss.git")
 md5sums=('SKIP')
@@ -35,6 +35,10 @@ package() {
     # Install the Python backend, UI assets, and shell script
     cp -r app.py launch.sh static templates "$pkgdir/opt/$pkgname/"
     chmod +x "$pkgdir/opt/$pkgname/launch.sh"
+
+    # Setup Python Virtual Environment for AUR Installation
+    python3 -m venv "$pkgdir/opt/$pkgname/venv"
+    "$pkgdir/opt/$pkgname/venv/bin/pip" install fastapi uvicorn pyserial pynmea2 websockets jinja2
 
     # Install the global wrapper script
     install -Dm755 jamforce-gnss.sh "$pkgdir/usr/bin/jamforce-gnss"
