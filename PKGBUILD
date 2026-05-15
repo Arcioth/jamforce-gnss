@@ -1,7 +1,7 @@
 # Maintainer: Arcioth <arcioth@example.com>
 pkgname=jamforce-gnss
 pkgver=1.0.0
-pkgrel=2
+pkgrel=3
 pkgdesc="JamForce GNSS Monitor for Taoglas - Tactical Multi-Constellation Dashboard"
 arch=('x86_64')
 url="https://github.com/Arcioth/jamforce-gnss"
@@ -39,6 +39,14 @@ package() {
     # Setup Python Virtual Environment for AUR Installation
     python3 -m venv "$pkgdir/opt/$pkgname/venv"
     "$pkgdir/opt/$pkgname/venv/bin/pip" install fastapi uvicorn pyserial pynmea2 websockets jinja2
+
+    # Fix python virtual environment shebangs hardcoding the temporary build directory
+    for file in "$pkgdir/opt/$pkgname/venv/bin/"*; do
+        if [[ -f "$file" ]]; then
+            sed -i "s|$pkgdir||g" "$file"
+        fi
+    done
+    sed -i "s|$pkgdir||g" "$pkgdir/opt/$pkgname/venv/pyvenv.cfg"
 
     # Install the global wrapper script
     install -Dm755 jamforce-gnss.sh "$pkgdir/usr/bin/jamforce-gnss"
