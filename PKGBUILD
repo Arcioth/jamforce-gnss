@@ -1,7 +1,7 @@
 # Maintainer: Arcioth <arcioth@example.com>
 pkgname=jamforce-gnss
 pkgver=1.0.0
-pkgrel=1
+pkgrel=2
 pkgdesc="JamForce GNSS Monitor for Taoglas - Tactical Multi-Constellation Dashboard"
 arch=('x86_64')
 url="https://github.com/Arcioth/jamforce-gnss"
